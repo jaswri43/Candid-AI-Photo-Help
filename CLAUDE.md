@@ -111,12 +111,22 @@ Phase 4 — starting (Phase 3 mechanically complete, pending real ratings)
   reference photos (specific, non-generic output — golden hour lighting,
   three-quarter framing, lifestyle backgrounds correctly identified); feedback
   on new photos now references these real attributes instead of generic advice.
+- Phase 4 in progress: `shot_attempts` table added (RLS disabled, FK to profiles,
+  score 0-100 check constraint); CameraScreen (live viewfinder via expo-camera,
+  capture → preview → "Use This Photo"/"Retake" → upload → feedback call, added
+  as a fourth screen toggle alongside Home/Reference Photos/Rate Photos);
+  "feedback" function now asks Claude for a 0-100 score alongside the feedback
+  array (response shape `{ feedback: string[], score: number }`) and writes
+  each attempt to shot_attempts after a successful call. Home screen's existing
+  Analyse flow updated to display the score too, for consistency with Camera.
 
 ## What's in progress
-- Starting Phase 4 (in-app camera + full UX) per decision to not block on real
+- Phase 4 (in-app camera + full UX) continuing per decision to not block on real
   ratings. Real ratings from girlfriend will be collected whenever possible and
   should replace the placeholder data in rated_photos when available — revisit
   Phase 3 validation (does score/feedback match her actual taste) at that point.
+  Same caveat now applies to the 0-100 score: it's being generated and stored,
+  but whether it tracks her actual taste is unverified until real ratings exist.
 
 ## Do not modify
 - N/A

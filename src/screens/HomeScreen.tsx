@@ -24,6 +24,7 @@ export default function HomeScreen({ profileId }: Props) {
   const [analysing, setAnalysing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string[] | null>(null);
+  const [score, setScore] = useState<number | null>(null);
 
   const busy = uploading || analysing;
 
@@ -48,6 +49,7 @@ export default function HomeScreen({ profileId }: Props) {
 
     setImageUri(result.assets[0].uri);
     setFeedback(null);
+    setScore(null);
     setError(null);
   }
 
@@ -56,6 +58,7 @@ export default function HomeScreen({ profileId }: Props) {
 
     setError(null);
     setFeedback(null);
+    setScore(null);
 
     let imageUrl: string;
     setUploading(true);
@@ -83,6 +86,7 @@ export default function HomeScreen({ profileId }: Props) {
       }
 
       setFeedback(data.feedback);
+      setScore(typeof data.score === "number" ? data.score : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to analyse photo.");
     } finally {
@@ -124,6 +128,13 @@ export default function HomeScreen({ profileId }: Props) {
       )}
 
       {error && <Text style={styles.error}>{error}</Text>}
+
+      {score !== null && (
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreValue}>{score}</Text>
+          <Text style={styles.scoreLabel}>/ 100</Text>
+        </View>
+      )}
 
       {feedback && (
         <View style={styles.feedbackContainer}>
@@ -192,6 +203,22 @@ const styles = StyleSheet.create({
     color: "#dc2626",
     marginBottom: 16,
     textAlign: "center",
+  },
+  scoreContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginBottom: 8,
+  },
+  scoreValue: {
+    fontSize: 48,
+    fontWeight: "700",
+    color: "#16a34a",
+  },
+  scoreLabel: {
+    fontSize: 18,
+    fontWeight: "500",
+    color: "#6b7280",
+    marginLeft: 4,
   },
   feedbackContainer: {
     alignSelf: "stretch",

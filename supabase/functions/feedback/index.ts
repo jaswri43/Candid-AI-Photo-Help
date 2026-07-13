@@ -34,22 +34,35 @@ function isValidHttpUrl(value: string): boolean {
   }
 }
 
-function extractFeedbackArray(text: string): string[] {
+type FeedbackResult = {
+  feedback: string[];
+  score: number;
+};
+
+function extractFeedbackResult(text: string): FeedbackResult {
   const trimmed = text.trim();
-  const jsonMatch = trimmed.match(/\[[\s\S]*\]/);
+  const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
   const jsonText = jsonMatch ? jsonMatch[0] : trimmed;
 
   const parsed = JSON.parse(jsonText);
 
   if (
-    !Array.isArray(parsed) ||
-    parsed.length === 0 ||
-    !parsed.every((item) => typeof item === "string")
+    typeof parsed !== "object" ||
+    parsed === null ||
+    !Array.isArray(parsed.feedback) ||
+    parsed.feedback.length === 0 ||
+    !parsed.feedback.every((item: unknown) => typeof item === "string") ||
+    typeof parsed.score !== "number" ||
+    !Number.isInteger(parsed.score) ||
+    parsed.score < 0 ||
+    parsed.score > 100
   ) {
-    throw new Error("Response was not a JSON array of strings");
+    throw new Error(
+      "Response was not a JSON object of the form { feedback: string[], score: number }",
+    );
   }
 
-  return parsed;
+  return { feedback: parsed.feedback, score: parsed.score };
 }
 
 Deno.serve(async (req) => {
@@ -172,12 +185,12 @@ Below are reference photos the subject has previously rated on a 1-5 scale (5 = 
 ${styleProfileText}`;
 
   const finalInstructionText = hasFewShot
-    ? `This is the new photo to analyze. Compare it to the style profile and to the rating patterns shown in the reference photos above. Give 2 to 4 specific, actionable pieces of feedback the photographer can act on immediately (e.g. "step back and reframe wider" or "move your subject out of the harsh window light"), referencing what made the highly-rated examples work or the low-rated examples fall short where relevant.
+    ? `This is the new photo to analyze. Compare it to the style profile and to the rating patterns shown in the reference photos above. Give 2 to 4 specific, actionable pieces of feedback the photographer can act on immediately (e.g. "step back and reframe wider" or "move your subject out of the harsh window light"), referencing what made the highly-rated examples work or the low-rated examples fall short where relevant. Also give a score from 0 to 100 reflecting how well the photo matches the style profile, calibrated against where it would land among the rated reference photos (a photo as good as a 5-star example should score near the top of the range, one as weak as a 1-star example should score near the bottom).
 
-Respond with ONLY a JSON array of strings, no markdown formatting, no code fences, no extra commentary. Example: ["Move closer to fill the frame more tightly", "Turn the subject toward the window for softer light"]`
-    : `Compare the attached photo to this style profile. Give 2 to 4 specific, actionable pieces of feedback the photographer can act on immediately (e.g. "step back and reframe wider" or "move your subject out of the harsh window light").
+Respond with ONLY a JSON object of the form { "feedback": string[], "score": number }, no markdown formatting, no code fences, no extra commentary. Example: {"feedback": ["Move closer to fill the frame more tightly", "Turn the subject toward the window for softer light"], "score": 72}`
+    : `Compare the attached photo to this style profile. Give 2 to 4 specific, actionable pieces of feedback the photographer can act on immediately (e.g. "step back and reframe wider" or "move your subject out of the harsh window light"). Also give a score from 0 to 100 reflecting how well the photo matches the style profile.
 
-Respond with ONLY a JSON array of strings, no markdown formatting, no code fences, no extra commentary. Example: ["Move closer to fill the frame more tightly", "Turn the subject toward the window for softer light"]`;
+Respond with ONLY a JSON object of the form { "feedback": string[], "score": number }, no markdown formatting, no code fences, no extra commentary. Example: {"feedback": ["Move closer to fill the frame more tightly", "Turn the subject toward the window for softer light"], "score": 72}`;
 
   const content: Anthropic.ContentBlockParam[] = [{ type: "text", text: introText }];
 
@@ -226,8 +239,9 @@ Respond with ONLY a JSON array of strings, no markdown formatting, no code fence
   }
 
   let feedback: string[];
+  let score: number;
   try {
-    feedback = extractFeedbackArray(textBlock.text);
+    ({ feedback, score } = extractFeedbackResult(textBlock.text));
   } catch {
     console.error("Failed to parse Claude response as JSON:", textBlock.text);
     return jsonResponse(
@@ -236,5 +250,16 @@ Respond with ONLY a JSON array of strings, no markdown formatting, no code fence
     );
   }
 
-  return jsonResponse({ feedback }, 200);
+  const { error: insertError } = await supabase.from("shot_attempts").insert({
+    profile_id: profileId,
+    image_url: imageUrl,
+    feedback,
+    score,
+  });
+
+  if (insertError) {
+    console.error("Failed to save shot attempt:", insertError);
+  }
+
+  return jsonResponse({ feedback, score }, 200);
 });
