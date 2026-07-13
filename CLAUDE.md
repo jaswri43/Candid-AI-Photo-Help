@@ -53,23 +53,70 @@ candid/
   iPhone photos default to HEIC, which Claude's vision API rejects
   ("file format is invalid or unsupported"). Any new upload path must go
   through this same conversion step, not just the original uploadImage.ts.
+- A single real row exists in `profiles` (id: 03b30593-5e35-4ec8-b834-1dfd2b7997ab)
+  and is hardcoded as PROFILE_ID throughout the app (App.tsx, ReferencePhotosScreen,
+  feedback function calls). Real profile creation UI is deferred — don't build it
+  unless asked; keep using this hardcoded ID.
+- App.tsx content (StyleSummaryCard + HomeScreen stacked) exceeds one screen's
+  height, so the root layout uses a ScrollView. Keep this in mind when adding
+  more UI to the home screen — don't remove the ScrollView without checking
+  content still fits or remains scrollable.
+- Getting real ratings from girlfriend is blocked for now (scheduling), so the
+  few-shot integration is being built and mechanically tested with placeholder/
+  self-entered ratings in rated_photos. This proves the plumbing (fetch top/bottom
+  rated photos, build few-shot prompt, no errors) but NOT that scores reflect her
+  actual taste — that validation must happen later once real ratings replace the
+  placeholder data. Don't treat placeholder-rating test results as proof the
+  personalization works.
+- Decision: proceed to Phase 4 (camera + full UX) after the few-shot mechanism
+  is verified, without waiting for real ratings — Phase 4 has no dependency on
+  ratings data. Real ratings can be collected in parallel and swapped in later.
+- `npm audit` reports 11 moderate vulnerabilities (postcss XSS, uuid buffer bounds
+  check) in nested Expo/Metro build tooling. DO NOT run `npm audit fix --force` —
+  the only fix path bumps to expo@57.0.4, which reintroduces the exact Expo Go
+  App Store incompatibility already fixed by downgrading to SDK 54. Both
+  vulnerabilities are in build-time tooling, not runtime app code, and not
+  meaningfully exploitable in this context (no untrusted CSS input, no manual
+  uuid buffer usage). Leave as-is until Expo Go's App Store version catches up
+  to SDK 57 (or later), then revisit.
 
 ## Current phase
-Phase 2 — starting
+Phase 4 — starting (Phase 3 mechanically complete, pending real ratings)
 
 ## What's built
 - Phase 1 complete: Expo project scaffold (SDK 54 — App Store Expo Go compatibility,
   not the newer SDK 57 the project was originally created with), Supabase project +
   "photos" Storage bucket, image upload utility (with HEIC→JPEG conversion via
-  expo-image-manipulator), "feedback" edge function (hardcoded style profile,
-  calls Claude vision API, returns 2–4 feedback items), single-screen UI wiring
+  expo-image-manipulator), "feedback" edge function, single-screen UI wiring
   image picker → upload → feedback call → feedback list display.
-- Verified working end to end on a physical device: real photos produce relevant,
-  specific 2–4 item feedback in under 10 seconds; network-failure error handling
-  confirmed; edge function consistently returns 200s in Supabase logs.
+- Phase 2 complete: `profiles`, `reference_photos`, `style_profiles` tables (RLS
+  disabled, single-user app); "extract-style" edge function (multi-image vision
+  call → structured style profile → upserted to style_profiles); ReferencePhotosScreen
+  (multi-image picker up to 10, upload progress, Generate Style Profile button);
+  StyleSummaryCard component rendering the saved profile; "feedback" function
+  updated to fetch and use the real style profile (by profileId) instead of the
+  Phase 1 hardcoded one.
+- Phase 3 mechanically complete: `rated_photos` table (RLS disabled, FK to
+  profiles, rating 1-5 check constraint); RatingScreen (single-photo picker →
+  upload → 1-5 star tap UI → submit → running count), verified working; "feedback"
+  function updated to fetch top/bottom rated photos and include them as few-shot
+  examples in the Claude prompt (falls back to style-profile-only if fewer than 2
+  rated photos exist). Tested successfully with placeholder/self-entered ratings —
+  confirms the plumbing works end to end without errors.
+- NOT yet verified: whether few-shot personalization actually reflects girlfriend's
+  real taste — this requires real ratings from her (20-30 per PRD), which haven't
+  been collected yet due to scheduling. Placeholder ratings currently in
+  rated_photos should be considered temporary test data, not real signal.
+- Verified working end to end: generated a real style profile from 10 actual
+  reference photos (specific, non-generic output — golden hour lighting,
+  three-quarter framing, lifestyle backgrounds correctly identified); feedback
+  on new photos now references these real attributes instead of generic advice.
 
 ## What's in progress
-- Nothing yet — Phase 2 (reference photos + style extraction) not started.
+- Starting Phase 4 (in-app camera + full UX) per decision to not block on real
+  ratings. Real ratings from girlfriend will be collected whenever possible and
+  should replace the placeholder data in rated_photos when available — revisit
+  Phase 3 validation (does score/feedback match her actual taste) at that point.
 
 ## Do not modify
 - N/A

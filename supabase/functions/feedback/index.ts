@@ -12,6 +12,12 @@ type StyleProfile = {
   summary_text: string;
 };
 
+type RatedPhoto = {
+  id: string;
+  image_url: string;
+  rating: number;
+};
+
 function jsonResponse(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -105,21 +111,83 @@ Deno.serve(async (req) => {
     );
   }
 
+  let fewShotExamples: RatedPhoto[] = [];
+  try {
+    const [{ data: topRated, error: topError }, { data: bottomRated, error: bottomError }] =
+      await Promise.all([
+        supabase
+          .from("rated_photos")
+          .select("id, image_url, rating")
+          .eq("profile_id", profileId)
+          .order("rating", { ascending: false })
+          .limit(3),
+        supabase
+          .from("rated_photos")
+          .select("id, image_url, rating")
+          .eq("profile_id", profileId)
+          .order("rating", { ascending: true })
+          .limit(3),
+      ]);
+
+    if (topError) throw topError;
+    if (bottomError) throw bottomError;
+
+    const seenIds = new Set<string>();
+    for (const photo of (topRated ?? []) as RatedPhoto[]) {
+      seenIds.add(photo.id);
+    }
+    const bottomOnly = ((bottomRated ?? []) as RatedPhoto[]).filter(
+      (photo) => !seenIds.has(photo.id),
+    );
+
+    const combined = [...((topRated ?? []) as RatedPhoto[]), ...bottomOnly];
+    if (combined.length >= 2) {
+      fewShotExamples = combined;
+    }
+  } catch (error) {
+    console.error("Failed to fetch rated photos for few-shot examples:", error);
+    fewShotExamples = [];
+  }
+
   const anthropic = new Anthropic({ apiKey });
 
-  const prompt = `You are a photography coach helping someone match a specific aesthetic style.
-
-Style profile to match:
+  const styleProfileText = `Style profile to match:
 - Subject position: ${styleProfile.subject_position}
 - Camera angle: ${styleProfile.camera_angle}
 - Lighting tone: ${styleProfile.lighting_tone}
 - Framing tightness: ${styleProfile.framing_tightness}
 - Background style: ${styleProfile.background_style}
-- Overall aesthetic: ${styleProfile.summary_text}
+- Overall aesthetic: ${styleProfile.summary_text}`;
 
-Compare the attached photo to this style profile. Give 2 to 4 specific, actionable pieces of feedback the photographer can act on immediately (e.g. "step back and reframe wider" or "move your subject out of the harsh window light").
+  const hasFewShot = fewShotExamples.length > 0;
+
+  const introText = hasFewShot
+    ? `You are a photography coach helping someone match a specific aesthetic style.
+
+${styleProfileText}
+
+Below are reference photos the subject has previously rated on a 1-5 scale (5 = loves it, 1 = dislikes it). Use them, together with the style profile, to calibrate what specifically separates highly-rated photos from low-rated ones (e.g. lighting, framing, angle, background, pose) before analyzing the new photo.`
+    : `You are a photography coach helping someone match a specific aesthetic style.
+
+${styleProfileText}`;
+
+  const finalInstructionText = hasFewShot
+    ? `This is the new photo to analyze. Compare it to the style profile and to the rating patterns shown in the reference photos above. Give 2 to 4 specific, actionable pieces of feedback the photographer can act on immediately (e.g. "step back and reframe wider" or "move your subject out of the harsh window light"), referencing what made the highly-rated examples work or the low-rated examples fall short where relevant.
+
+Respond with ONLY a JSON array of strings, no markdown formatting, no code fences, no extra commentary. Example: ["Move closer to fill the frame more tightly", "Turn the subject toward the window for softer light"]`
+    : `Compare the attached photo to this style profile. Give 2 to 4 specific, actionable pieces of feedback the photographer can act on immediately (e.g. "step back and reframe wider" or "move your subject out of the harsh window light").
 
 Respond with ONLY a JSON array of strings, no markdown formatting, no code fences, no extra commentary. Example: ["Move closer to fill the frame more tightly", "Turn the subject toward the window for softer light"]`;
+
+  const content: Anthropic.ContentBlockParam[] = [{ type: "text", text: introText }];
+
+  for (const example of fewShotExamples) {
+    content.push({ type: "image", source: { type: "url", url: example.image_url } });
+    content.push({ type: "text", text: `This photo was rated ${example.rating}/5.` });
+  }
+
+  content.push({ type: "image", source: { type: "url", url: imageUrl } });
+  content.push({ type: "text", text: finalInstructionText });
 
   let message: Anthropic.Message;
   try {
@@ -129,10 +197,7 @@ Respond with ONLY a JSON array of strings, no markdown formatting, no code fence
       messages: [
         {
           role: "user",
-          content: [
-            { type: "image", source: { type: "url", url: imageUrl } },
-            { type: "text", text: prompt },
-          ],
+          content,
         },
       ],
     });
