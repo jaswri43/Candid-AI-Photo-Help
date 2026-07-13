@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -122,7 +123,7 @@ export default function CameraScreen({ profileId }: Props) {
   if (photoUri) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}>
           <Image source={{ uri: photoUri }} style={styles.preview} />
 
           {!feedback && (
@@ -176,7 +177,7 @@ export default function CameraScreen({ profileId }: Props) {
               </TouchableOpacity>
             </>
           )}
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
