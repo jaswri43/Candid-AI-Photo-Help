@@ -1,10 +1,8 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import StyleSummaryCard from './src/components/StyleSummaryCard';
 import CameraScreen from './src/screens/CameraScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ReferencePhotosScreen from './src/screens/ReferencePhotosScreen';
@@ -17,14 +15,7 @@ const PROFILE_ID = '03b30593-5e35-4ec8-b834-1dfd2b7997ab';
 const Tab = createBottomTabNavigator();
 
 function HomeTab() {
-  return (
-    <View style={styles.homeTab}>
-      <View style={styles.summaryCardWrapper}>
-        <StyleSummaryCard profileId={PROFILE_ID} />
-      </View>
-      <HomeScreen profileId={PROFILE_ID} />
-    </View>
-  );
+  return <HomeScreen profileId={PROFILE_ID} />;
 }
 
 function ReferencePhotosTab() {
@@ -62,14 +53,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  homeTab: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  summaryCardWrapper: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-  },
-});

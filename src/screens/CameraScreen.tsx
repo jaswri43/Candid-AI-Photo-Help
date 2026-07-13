@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { supabase } from "../lib/supabase";
 import { uploadImage } from "../utils/uploadImage";
@@ -94,93 +95,107 @@ export default function CameraScreen({ profileId }: Props) {
   }
 
   if (!permission) {
-    return <View style={styles.container} />;
+    return (
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        <View style={styles.container} />
+      </SafeAreaView>
+    );
   }
 
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>
-          Candid needs camera access to take photos.
-        </Text>
-        <TouchableOpacity style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Grant Camera Permission</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        <View style={styles.container}>
+          <Text style={styles.message}>
+            Candid needs camera access to take photos.
+          </Text>
+          <TouchableOpacity style={styles.button} onPress={requestPermission}>
+            <Text style={styles.buttonText}>Grant Camera Permission</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (photoUri) {
     return (
-      <View style={styles.container}>
-        <Image source={{ uri: photoUri }} style={styles.preview} />
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        <View style={styles.container}>
+          <Image source={{ uri: photoUri }} style={styles.preview} />
 
-        {!feedback && (
-          <View style={styles.actionRow}>
-            <TouchableOpacity
-              style={[styles.button, styles.retakeButton, busy && styles.buttonDisabled]}
-              onPress={handleRetake}
-              disabled={busy}
-            >
-              <Text style={styles.buttonText}>Retake</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.useButton, busy && styles.buttonDisabled]}
-              onPress={handleUseThisPhoto}
-              disabled={busy}
-            >
-              {busy ? (
-                <View style={styles.row}>
-                  <ActivityIndicator color="#fff" />
-                  <Text style={[styles.buttonText, styles.loadingText]}>
-                    {uploading ? "Uploading..." : "Analysing..."}
-                  </Text>
-                </View>
-              ) : (
-                <Text style={styles.buttonText}>Use This Photo</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {error && <Text style={styles.error}>{error}</Text>}
-
-        {feedback && (
-          <>
-            {score !== null && (
-              <View style={styles.scoreContainer}>
-                <Text style={styles.scoreValue}>{score}</Text>
-                <Text style={styles.scoreLabel}>/ 100</Text>
-              </View>
-            )}
-            <View style={styles.feedbackContainer}>
-              <Text style={styles.feedbackTitle}>Feedback</Text>
-              {feedback.map((item, index) => (
-                <Text key={index} style={styles.feedbackItem}>
-                  • {item}
-                </Text>
-              ))}
+          {!feedback && (
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={[styles.button, styles.retakeButton, busy && styles.buttonDisabled]}
+                onPress={handleRetake}
+                disabled={busy}
+              >
+                <Text style={styles.buttonText}>Retake</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.useButton, busy && styles.buttonDisabled]}
+                onPress={handleUseThisPhoto}
+                disabled={busy}
+              >
+                {busy ? (
+                  <View style={styles.row}>
+                    <ActivityIndicator color="#fff" />
+                    <Text style={[styles.buttonText, styles.loadingText]}>
+                      {uploading ? "Uploading..." : "Analysing..."}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.buttonText}>Use This Photo</Text>
+                )}
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.button} onPress={handleRetake}>
-              <Text style={styles.buttonText}>Take Another Photo</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+          )}
+
+          {error && <Text style={styles.error}>{error}</Text>}
+
+          {feedback && (
+            <>
+              {score !== null && (
+                <View style={styles.scoreContainer}>
+                  <Text style={styles.scoreValue}>{score}</Text>
+                  <Text style={styles.scoreLabel}>/ 100</Text>
+                </View>
+              )}
+              <View style={styles.feedbackContainer}>
+                <Text style={styles.feedbackTitle}>Feedback</Text>
+                {feedback.map((item, index) => (
+                  <Text key={index} style={styles.feedbackItem}>
+                    • {item}
+                  </Text>
+                ))}
+              </View>
+              <TouchableOpacity style={styles.button} onPress={handleRetake}>
+                <Text style={styles.buttonText}>Take Another Photo</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="back" />
-      <TouchableOpacity style={styles.captureButton} onPress={handleCapture}>
-        <View style={styles.captureButtonInner} />
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <View style={styles.container}>
+        <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+        <TouchableOpacity style={styles.captureButton} onPress={handleCapture}>
+          <View style={styles.captureButtonInner} />
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     flexGrow: 1,
     alignItems: "center",
