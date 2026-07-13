@@ -20,6 +20,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Candid uses the camera to take photos and give real-time feedback."
+        }
+      ]
+    ]
   }
 }

@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import StyleSummaryCard from './src/components/StyleSummaryCard';
+import CameraScreen from './src/screens/CameraScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ReferencePhotosScreen from './src/screens/ReferencePhotosScreen';
 import RatingScreen from './src/screens/RatingScreen';
@@ -11,18 +12,20 @@ import RatingScreen from './src/screens/RatingScreen';
 // Hardcoded to the single profile row that exists for now.
 const PROFILE_ID = '03b30593-5e35-4ec8-b834-1dfd2b7997ab';
 
-type Screen = 'home' | 'referencePhotos' | 'rating';
+type Screen = 'home' | 'referencePhotos' | 'rating' | 'camera';
 
 const NEXT_SCREEN: Record<Screen, Screen> = {
   home: 'referencePhotos',
   referencePhotos: 'rating',
-  rating: 'home',
+  rating: 'camera',
+  camera: 'home',
 };
 
 const TOGGLE_LABEL: Record<Screen, string> = {
   home: 'Reference Photos',
   referencePhotos: 'Rate Photos',
-  rating: 'Home',
+  rating: 'Camera',
+  camera: 'Home',
 };
 
 export default function App() {
@@ -48,6 +51,7 @@ export default function App() {
         )}
         {screen === 'referencePhotos' && <ReferencePhotosScreen />}
         {screen === 'rating' && <RatingScreen profileId={PROFILE_ID} />}
+        {screen === 'camera' && <CameraScreen profileId={PROFILE_ID} />}
       </ScrollView>
       <StatusBar style="auto" />
     </SafeAreaView>
