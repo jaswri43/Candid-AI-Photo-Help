@@ -12,7 +12,9 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import ErrorText from "../components/ErrorText";
 import StyleSummaryCard from "../components/StyleSummaryCard";
+import { colors, fontSize, fontWeight, radius, spacing } from "../constants/theme";
 import { supabase } from "../lib/supabase";
 import { uploadImage } from "../utils/uploadImage";
 
@@ -120,7 +122,7 @@ export default function HomeScreen({ profileId }: Props) {
           >
             {busy ? (
               <View style={styles.row}>
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.textInverse} />
                 <Text style={[styles.buttonText, styles.loadingText]}>
                   {uploading ? "Uploading..." : "Analysing..."}
                 </Text>
@@ -131,7 +133,7 @@ export default function HomeScreen({ profileId }: Props) {
           </TouchableOpacity>
         )}
 
-        {error && <Text style={styles.error}>{error}</Text>}
+        {error && <ErrorText>{error}</ErrorText>}
 
         {score !== null && (
           <View style={styles.scoreContainer}>
@@ -158,88 +160,86 @@ export default function HomeScreen({ profileId }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
   },
   container: {
     flexGrow: 1,
     alignItems: "center",
-    paddingTop: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    backgroundColor: "#fff",
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxl,
+    backgroundColor: colors.background,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "600",
-    marginBottom: 24,
+    fontSize: fontSize.heading,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
   },
   button: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm + 4,
+    paddingHorizontal: spacing.lg - 4,
+    borderRadius: radius.sm,
+    marginBottom: spacing.md,
     alignSelf: "stretch",
     alignItems: "center",
   },
   analyseButton: {
-    backgroundColor: "#16a34a",
+    backgroundColor: colors.success,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
+    color: colors.textInverse,
+    fontSize: fontSize.button,
+    fontWeight: fontWeight.medium,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: spacing.sm,
   },
   loadingText: {
-    marginLeft: 8,
+    marginLeft: spacing.sm,
   },
   preview: {
     width: "100%",
     aspectRatio: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-    backgroundColor: "#f3f4f6",
-  },
-  error: {
-    color: "#dc2626",
-    marginBottom: 16,
-    textAlign: "center",
+    borderRadius: radius.sm,
+    marginBottom: spacing.md,
+    backgroundColor: colors.surface,
   },
   scoreContainer: {
     flexDirection: "row",
     alignItems: "baseline",
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   scoreValue: {
-    fontSize: 48,
-    fontWeight: "700",
-    color: "#16a34a",
+    fontSize: fontSize.score,
+    fontWeight: fontWeight.bold,
+    color: colors.success,
   },
   scoreLabel: {
-    fontSize: 18,
-    fontWeight: "500",
-    color: "#6b7280",
-    marginLeft: 4,
+    fontSize: fontSize.scoreLabel,
+    fontWeight: fontWeight.medium,
+    color: colors.textSecondary,
+    marginLeft: spacing.xs,
   },
   feedbackContainer: {
     alignSelf: "stretch",
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   feedbackTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
+    fontSize: fontSize.subheading,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
   feedbackItem: {
-    fontSize: 15,
+    fontSize: fontSize.body,
+    color: colors.textPrimary,
     marginBottom: 6,
     lineHeight: 20,
   },

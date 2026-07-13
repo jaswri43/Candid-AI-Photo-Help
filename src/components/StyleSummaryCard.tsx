@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import { colors, fontSize, fontWeight, radius, spacing } from "../constants/theme";
 import { supabase } from "../lib/supabase";
 
 type StyleProfile = {
@@ -65,7 +66,7 @@ export default function StyleSummaryCard({ profileId }: Props) {
   if (loading) {
     return (
       <View style={styles.card}>
-        <ActivityIndicator />
+        <ActivityIndicator color={colors.primary} />
         <Text style={styles.statusText}>Loading style profile...</Text>
       </View>
     );
@@ -105,20 +106,22 @@ export default function StyleSummaryCard({ profileId }: Props) {
 const styles = StyleSheet.create({
   card: {
     alignSelf: "stretch",
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.md,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
+    fontSize: fontSize.subheading,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
   summary: {
-    fontSize: 15,
+    fontSize: fontSize.body,
+    color: colors.textPrimary,
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: spacing.md - 4,
   },
   row: {
     flexDirection: "row",
@@ -126,25 +129,26 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   rowLabel: {
-    fontSize: 13,
-    color: "#6b7280",
+    fontSize: fontSize.label,
+    color: colors.textSecondary,
   },
   rowValue: {
-    fontSize: 13,
-    fontWeight: "500",
+    fontSize: fontSize.label,
+    fontWeight: fontWeight.medium,
+    color: colors.textPrimary,
     flexShrink: 1,
     textAlign: "right",
-    marginLeft: 12,
+    marginLeft: spacing.md - 4,
   },
   statusText: {
-    fontSize: 14,
-    color: "#6b7280",
-    marginTop: 8,
+    fontSize: fontSize.body - 1,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
     textAlign: "center",
   },
   errorText: {
-    fontSize: 14,
-    color: "#dc2626",
+    fontSize: fontSize.body - 1,
+    color: colors.error,
     textAlign: "center",
   },
 });

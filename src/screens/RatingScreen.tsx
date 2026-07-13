@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
+import ErrorText from "../components/ErrorText";
+import { colors, fontSize, fontWeight, radius, spacing } from "../constants/theme";
 import { supabase } from "../lib/supabase";
 import { uploadImage } from "../utils/uploadImage";
 
@@ -120,7 +122,7 @@ export default function RatingScreen({ profileId }: Props) {
 
       {uploading && (
         <View style={styles.row}>
-          <ActivityIndicator color="#2563eb" />
+          <ActivityIndicator color={colors.primary} />
           <Text style={styles.loadingText}>Uploading...</Text>
         </View>
       )}
@@ -152,7 +154,7 @@ export default function RatingScreen({ profileId }: Props) {
           >
             {submitting ? (
               <View style={styles.row}>
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.textInverse} />
                 <Text style={[styles.buttonText, styles.loadingTextInline]}>Submitting...</Text>
               </View>
             ) : (
@@ -162,7 +164,7 @@ export default function RatingScreen({ profileId }: Props) {
         </>
       )}
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <ErrorText>{error}</ErrorText>}
 
       {ratedCount !== null && (
         <Text style={styles.count}>{ratedCount} photos rated so far</Text>
@@ -176,76 +178,74 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
     paddingTop: 80,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    backgroundColor: "#fff",
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxl,
+    backgroundColor: colors.background,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "600",
-    marginBottom: 24,
+    fontSize: fontSize.heading,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
   },
   button: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm + 4,
+    paddingHorizontal: spacing.lg - 4,
+    borderRadius: radius.sm,
+    marginBottom: spacing.md,
     alignSelf: "stretch",
     alignItems: "center",
   },
   submitButton: {
-    backgroundColor: "#16a34a",
+    backgroundColor: colors.success,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
+    color: colors.textInverse,
+    fontSize: fontSize.button,
+    fontWeight: fontWeight.medium,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 16,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   loadingText: {
-    marginLeft: 8,
-    fontSize: 15,
+    marginLeft: spacing.sm,
+    fontSize: fontSize.body,
+    color: colors.textSecondary,
   },
   loadingTextInline: {
-    marginLeft: 8,
+    marginLeft: spacing.sm,
   },
   preview: {
     width: "100%",
     aspectRatio: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-    backgroundColor: "#f3f4f6",
+    borderRadius: radius.sm,
+    marginBottom: spacing.md,
+    backgroundColor: colors.surface,
   },
   starPrompt: {
-    fontSize: 16,
-    marginBottom: 12,
+    fontSize: fontSize.button,
+    color: colors.textPrimary,
+    marginBottom: spacing.md - 4,
   },
   starRow: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 24,
+    gap: spacing.md - 4,
+    marginBottom: spacing.lg,
   },
   star: {
-    fontSize: 40,
-    color: "#f59e0b",
-  },
-  error: {
-    color: "#dc2626",
-    marginBottom: 16,
-    textAlign: "center",
+    fontSize: fontSize.star,
+    color: colors.warning,
   },
   count: {
-    fontSize: 15,
-    color: "#6b7280",
-    marginTop: 8,
+    fontSize: fontSize.body,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
   },
 });

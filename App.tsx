@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { colors, fontSize, fontWeight } from './src/constants/theme';
 import CameraScreen from './src/screens/CameraScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ReferencePhotosScreen from './src/screens/ReferencePhotosScreen';
@@ -34,7 +35,21 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Tab.Navigator screenOptions={{ headerShown: false }}>
+        <Tab.Navigator
+          screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: colors.primary,
+            tabBarInactiveTintColor: colors.textSecondary,
+            tabBarStyle: {
+              backgroundColor: colors.background,
+              borderTopColor: colors.surface,
+            },
+            tabBarLabelStyle: {
+              fontSize: fontSize.label,
+              fontWeight: fontWeight.medium,
+            },
+          }}
+        >
           <Tab.Screen name="Home" component={HomeTab} />
           <Tab.Screen
             name="ReferencePhotos"

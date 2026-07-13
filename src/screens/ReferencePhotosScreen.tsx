@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
+import ErrorText from "../components/ErrorText";
+import { colors, fontSize, fontWeight, radius, spacing } from "../constants/theme";
 import { supabase } from "../lib/supabase";
 import { uploadImage } from "../utils/uploadImage";
 
@@ -132,7 +134,7 @@ export default function ReferencePhotosScreen({ profileId }: Props) {
         >
           {busy ? (
             <View style={styles.row}>
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.textInverse} />
               <Text style={[styles.buttonText, styles.loadingText]}>
                 {uploading
                   ? `Uploading photo ${uploadProgress?.current ?? 1} of ${uploadProgress?.total ?? imageUris.length}`
@@ -145,7 +147,7 @@ export default function ReferencePhotosScreen({ profileId }: Props) {
         </TouchableOpacity>
       )}
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <ErrorText>{error}</ErrorText>}
 
       {styleProfile && (
         <View style={styles.resultContainer}>
@@ -162,72 +164,70 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
     paddingTop: 80,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    backgroundColor: "#fff",
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxl,
+    backgroundColor: colors.background,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "600",
-    marginBottom: 24,
+    fontSize: fontSize.heading,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
   },
   button: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginBottom: 16,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm + 4,
+    paddingHorizontal: spacing.lg - 4,
+    borderRadius: radius.sm,
+    marginBottom: spacing.md,
     alignSelf: "stretch",
     alignItems: "center",
   },
   generateButton: {
-    backgroundColor: "#16a34a",
+    backgroundColor: colors.success,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
+    color: colors.textInverse,
+    fontSize: fontSize.button,
+    fontWeight: fontWeight.medium,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: spacing.sm,
   },
   loadingText: {
-    marginLeft: 8,
+    marginLeft: spacing.sm,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: spacing.sm,
     alignSelf: "stretch",
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   thumbnail: {
     width: "31%",
     aspectRatio: 1,
-    borderRadius: 8,
-    backgroundColor: "#f3f4f6",
-  },
-  error: {
-    color: "#dc2626",
-    marginBottom: 16,
-    textAlign: "center",
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
   },
   resultContainer: {
     alignSelf: "stretch",
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   resultTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 8,
+    fontSize: fontSize.subheading,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
   resultText: {
-    fontSize: 13,
+    fontSize: fontSize.label,
+    color: colors.textPrimary,
     lineHeight: 18,
     fontFamily: "monospace",
   },
