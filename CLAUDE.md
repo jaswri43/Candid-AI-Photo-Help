@@ -48,15 +48,28 @@ candid/
   and feedback (needed for future few-shot data) — but there is NO dedicated
   history/gallery screen in v1. Shot history UI is out of scope per the PRD.
   Don't add a history screen unless this decision is revisited.
+- Images are converted to JPEG (and resized to max width 1200px) via
+  expo-image-manipulator BEFORE upload to Supabase Storage. This is required —
+  iPhone photos default to HEIC, which Claude's vision API rejects
+  ("file format is invalid or unsupported"). Any new upload path must go
+  through this same conversion step, not just the original uploadImage.ts.
 
 ## Current phase
-Phase 1 — starting
+Phase 2 — starting
 
 ## What's built
-- Nothing yet
+- Phase 1 complete: Expo project scaffold (SDK 54 — App Store Expo Go compatibility,
+  not the newer SDK 57 the project was originally created with), Supabase project +
+  "photos" Storage bucket, image upload utility (with HEIC→JPEG conversion via
+  expo-image-manipulator), "feedback" edge function (hardcoded style profile,
+  calls Claude vision API, returns 2–4 feedback items), single-screen UI wiring
+  image picker → upload → feedback call → feedback list display.
+- Verified working end to end on a physical device: real photos produce relevant,
+  specific 2–4 item feedback in under 10 seconds; network-failure error handling
+  confirmed; edge function consistently returns 200s in Supabase logs.
 
 ## What's in progress
-- Nothing yet
+- Nothing yet — Phase 2 (reference photos + style extraction) not started.
 
 ## Do not modify
 - N/A
