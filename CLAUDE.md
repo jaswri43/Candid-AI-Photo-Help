@@ -57,10 +57,16 @@ candid/
   and is hardcoded as PROFILE_ID throughout the app (App.tsx, ReferencePhotosScreen,
   feedback function calls). Real profile creation UI is deferred — don't build it
   unless asked; keep using this hardcoded ID.
-- App.tsx content (StyleSummaryCard + HomeScreen stacked) exceeds one screen's
-  height, so the root layout uses a ScrollView. Keep this in mind when adding
-  more UI to the home screen — don't remove the ScrollView without checking
-  content still fits or remains scrollable.
+- Navigation is React Navigation (`@react-navigation/native` +
+  `@react-navigation/bottom-tabs`, with `react-native-screens` /
+  `react-native-safe-area-context` peers) — a bottom tab navigator with four
+  tabs (Home, Reference Photos, Rate Photos, Camera), replacing the earlier
+  toggle-button screen switcher. App.tsx only sets up SafeAreaProvider +
+  NavigationContainer + Tab.Navigator and a small per-tab wrapper for Home
+  (StyleSummaryCard + HomeScreen); it does not contain screen-switching logic.
+  Each screen still receives PROFILE_ID as a `profileId` prop from App.tsx
+  (ReferencePhotosScreen now takes this as a prop too, instead of its own
+  hardcoded constant, for consistency with the other screens).
 - Getting real ratings from girlfriend is blocked for now (scheduling), so the
   few-shot integration is being built and mechanically tested with placeholder/
   self-entered ratings in rated_photos. This proves the plumbing (fetch top/bottom

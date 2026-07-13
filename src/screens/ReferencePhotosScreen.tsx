@@ -17,11 +17,11 @@ import { uploadImage } from "../utils/uploadImage";
 const MAX_IMAGES = 10;
 const MIN_IMAGES = 3;
 
-// TODO: replace with real profile creation UI once that's built.
-// Hardcoded to the single profile row that exists for now.
-const PLACEHOLDER_PROFILE_ID = "03b30593-5e35-4ec8-b834-1dfd2b7997ab";
+type Props = {
+  profileId: string;
+};
 
-export default function ReferencePhotosScreen() {
+export default function ReferencePhotosScreen({ profileId }: Props) {
   const [imageUris, setImageUris] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(
@@ -88,7 +88,7 @@ export default function ReferencePhotosScreen() {
     setExtracting(true);
     try {
       const { data, error: invokeError } = await supabase.functions.invoke("extract-style", {
-        body: { profileId: PLACEHOLDER_PROFILE_ID, imageUrls: uploadedUrls },
+        body: { profileId, imageUrls: uploadedUrls },
       });
 
       if (invokeError) {
