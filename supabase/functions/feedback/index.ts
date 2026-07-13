@@ -1,13 +1,15 @@
 import Anthropic from "npm:@anthropic-ai/sdk";
+import { createClient } from "npm:@supabase/supabase-js";
 
 const MODEL = "claude-sonnet-4-6";
 
-const STYLE_PROFILE = {
-  subject_position: "centered",
-  camera_angle: "medium shot",
-  lighting_tone: "soft natural light",
-  framing_tightness: "tight framing",
-  background_style: "clean, uncluttered background",
+type StyleProfile = {
+  subject_position: string;
+  camera_angle: string;
+  lighting_tone: string;
+  framing_tightness: string;
+  background_style: string;
+  summary_text: string;
 };
 
 function jsonResponse(body: unknown, status: number): Response {
@@ -49,25 +51,58 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Method not allowed. Use POST." }, 405);
   }
 
-  let body: { imageUrl?: unknown };
+  let body: { imageUrl?: unknown; profileId?: unknown };
   try {
     body = await req.json();
   } catch {
     return jsonResponse({ error: "Request body must be valid JSON." }, 400);
   }
 
-  const { imageUrl } = body;
+  const { imageUrl, profileId } = body;
   if (typeof imageUrl !== "string" || !isValidHttpUrl(imageUrl)) {
     return jsonResponse(
       { error: "Request body must include a valid 'imageUrl' string." },
       400,
     );
   }
+  if (typeof profileId !== "string" || profileId.trim() === "") {
+    return jsonResponse(
+      { error: "Request body must include a valid 'profileId' string." },
+      400,
+    );
+  }
 
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY is not set in the function environment.");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!apiKey || !supabaseUrl || !supabaseServiceRoleKey) {
+    console.error(
+      "Missing required environment variables (ANTHROPIC_API_KEY / SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).",
+    );
     return jsonResponse({ error: "Server is not configured correctly." }, 500);
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+  const { data: styleProfile, error: selectError } = await supabase
+    .from("style_profiles")
+    .select(
+      "subject_position, camera_angle, lighting_tone, framing_tightness, background_style, summary_text",
+    )
+    .eq("profile_id", profileId)
+    .maybeSingle<StyleProfile>();
+
+  if (selectError) {
+    console.error("Database error fetching style profile:", selectError);
+    return jsonResponse({ error: "Failed to look up style profile." }, 500);
+  }
+
+  if (!styleProfile) {
+    return jsonResponse(
+      { error: "No style profile found — generate one first." },
+      404,
+    );
   }
 
   const anthropic = new Anthropic({ apiKey });
@@ -75,11 +110,12 @@ Deno.serve(async (req) => {
   const prompt = `You are a photography coach helping someone match a specific aesthetic style.
 
 Style profile to match:
-- Subject position: ${STYLE_PROFILE.subject_position}
-- Camera angle: ${STYLE_PROFILE.camera_angle}
-- Lighting tone: ${STYLE_PROFILE.lighting_tone}
-- Framing tightness: ${STYLE_PROFILE.framing_tightness}
-- Background style: ${STYLE_PROFILE.background_style}
+- Subject position: ${styleProfile.subject_position}
+- Camera angle: ${styleProfile.camera_angle}
+- Lighting tone: ${styleProfile.lighting_tone}
+- Framing tightness: ${styleProfile.framing_tightness}
+- Background style: ${styleProfile.background_style}
+- Overall aesthetic: ${styleProfile.summary_text}
 
 Compare the attached photo to this style profile. Give 2 to 4 specific, actionable pieces of feedback the photographer can act on immediately (e.g. "step back and reframe wider" or "move your subject out of the harsh window light").
 

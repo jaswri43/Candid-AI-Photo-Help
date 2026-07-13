@@ -14,7 +14,11 @@ import * as ImagePicker from "expo-image-picker";
 import { supabase } from "../lib/supabase";
 import { uploadImage } from "../utils/uploadImage";
 
-export default function HomeScreen() {
+type Props = {
+  profileId: string;
+};
+
+export default function HomeScreen({ profileId }: Props) {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [analysing, setAnalysing] = useState(false);
@@ -68,7 +72,7 @@ export default function HomeScreen() {
     try {
       const { data, error: invokeError } = await supabase.functions.invoke(
         "feedback",
-        { body: { imageUrl } }
+        { body: { imageUrl, profileId } }
       );
 
       if (invokeError) {
