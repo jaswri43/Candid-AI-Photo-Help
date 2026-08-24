@@ -57,16 +57,10 @@ candid/
   and is hardcoded as PROFILE_ID throughout the app (App.tsx, ReferencePhotosScreen,
   feedback function calls). Real profile creation UI is deferred — don't build it
   unless asked; keep using this hardcoded ID.
-- Navigation is React Navigation (`@react-navigation/native` +
-  `@react-navigation/bottom-tabs`, with `react-native-screens` /
-  `react-native-safe-area-context` peers) — a bottom tab navigator with four
-  tabs (Home, Reference Photos, Rate Photos, Camera), replacing the earlier
-  toggle-button screen switcher. App.tsx only sets up SafeAreaProvider +
-  NavigationContainer + Tab.Navigator and a small per-tab wrapper for Home
-  (StyleSummaryCard + HomeScreen); it does not contain screen-switching logic.
-  Each screen still receives PROFILE_ID as a `profileId` prop from App.tsx
-  (ReferencePhotosScreen now takes this as a prop too, instead of its own
-  hardcoded constant, for consistency with the other screens).
+- App.tsx content (StyleSummaryCard + HomeScreen stacked) exceeds one screen's
+  height, so the root layout uses a ScrollView. Keep this in mind when adding
+  more UI to the home screen — don't remove the ScrollView without checking
+  content still fits or remains scrollable.
 - Getting real ratings from girlfriend is blocked for now (scheduling), so the
   few-shot integration is being built and mechanically tested with placeholder/
   self-entered ratings in rated_photos. This proves the plumbing (fetch top/bottom
@@ -85,9 +79,24 @@ candid/
   meaningfully exploitable in this context (no untrusted CSS input, no manual
   uuid buffer usage). Leave as-is until Expo Go's App Store version catches up
   to SDK 57 (or later), then revisit.
+- Navigation: @react-navigation/native + bottom-tabs, four tabs (Home, Reference
+  Photos, Rate Photos, Camera), replacing the old toggle-button switcher in
+  App.tsx. PROFILE_ID is threaded down to whichever screens need it.
+- Recurring layout pattern to watch for: any screen with variable-height content
+  (photo preview + results below) needs its own ScrollView and proper safe-area
+  handling (react-native-safe-area-context) — this isn't automatic per-screen
+  under the tab navigator. Already fixed on HomeScreen and CameraScreen's
+  post-capture view. If a new screen is added with similar preview+results
+  content, apply the same pattern from the start rather than hitting this bug
+  again. Exception: live camera viewfinder (pre-capture) should stay fixed/
+  full-screen, not scrollable.
+- Shared theming lives in a small constants file (src/constants/theme.ts or
+  similar) — colors, spacing, font sizes — applied consistently across all four
+  screens along with ActivityIndicator loading spinners and consistent error
+  message styling. Keep new UI consistent with this rather than one-off styling.
 
 ## Current phase
-Phase 4 — starting (Phase 3 mechanically complete, pending real ratings)
+Phase 5 — starting (Phase 3 mechanically complete, pending real ratings)
 
 ## What's built
 - Phase 1 complete: Expo project scaffold (SDK 54 — App Store Expo Go compatibility,
@@ -113,26 +122,32 @@ Phase 4 — starting (Phase 3 mechanically complete, pending real ratings)
   real taste — this requires real ratings from her (20-30 per PRD), which haven't
   been collected yet due to scheduling. Placeholder ratings currently in
   rated_photos should be considered temporary test data, not real signal.
+- Phase 4 complete: expo-camera installed; CameraScreen built (live viewfinder →
+  capture → preview with Retake/Use This Photo → upload → feedback call, with
+  camera permission handling); `shot_attempts` table (RLS disabled, FK to
+  profiles, score 0-100 check constraint) added; "feedback" function updated to
+  also return a 0-100 score and insert a row into shot_attempts on every call;
+  score displayed prominently on both CameraScreen and Home screen results;
+  React Navigation bottom-tab navigator replacing the old toggle switcher (Home,
+  Reference Photos, Rate Photos, Camera tabs); UI polish pass (shared theme
+  constants, consistent spacing/colors/typography, ActivityIndicator loading
+  states, consistent error styling); two post-navigation layout regressions
+  found and fixed (missing ScrollView on Home, safe-area insets not applied
+  per-screen, non-scrollable CameraScreen results view) — see Key decisions for
+  the recurring pattern to watch for on future screens.
 - Verified working end to end: generated a real style profile from 10 actual
   reference photos (specific, non-generic output — golden hour lighting,
   three-quarter framing, lifestyle backgrounds correctly identified); feedback
-  on new photos now references these real attributes instead of generic advice.
-- Phase 4 in progress: `shot_attempts` table added (RLS disabled, FK to profiles,
-  score 0-100 check constraint); CameraScreen (live viewfinder via expo-camera,
-  capture → preview → "Use This Photo"/"Retake" → upload → feedback call, added
-  as a fourth screen toggle alongside Home/Reference Photos/Rate Photos);
-  "feedback" function now asks Claude for a 0-100 score alongside the feedback
-  array (response shape `{ feedback: string[], score: number }`) and writes
-  each attempt to shot_attempts after a successful call. Home screen's existing
-  Analyse flow updated to display the score too, for consistency with Camera.
+  on new photos now references these real attributes instead of generic advice;
+  full camera → capture → score + feedback → shot_attempts persistence flow
+  confirmed working on physical device.
 
 ## What's in progress
-- Phase 4 (in-app camera + full UX) continuing per decision to not block on real
-  ratings. Real ratings from girlfriend will be collected whenever possible and
-  should replace the placeholder data in rated_photos when available — revisit
-  Phase 3 validation (does score/feedback match her actual taste) at that point.
-  Same caveat now applies to the 0-100 score: it's being generated and stored,
-  but whether it tracks her actual taste is unverified until real ratings exist.
+- Starting Phase 5 (v1 ship): error handling audit, secrets audit, app icon +
+  splash screen, EAS Build → TestFlight submission.
+- Still pending, not blocking: real ratings from girlfriend (20-30 per PRD) to
+  replace placeholder data in rated_photos and validate Phase 3's actual
+  personalization quality. Revisit when possible.
 
 ## Do not modify
 - N/A
